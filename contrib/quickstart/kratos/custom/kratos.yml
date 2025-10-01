@@ -67,7 +67,6 @@ selfservice:
           hooks:
             - hook: session
     login:
-      style: identifier_first
       ui_url: http://localhost:4455/login
     error:
       ui_url: http://localhost:4455/error
