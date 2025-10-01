@@ -95,6 +95,39 @@
       "additionalProperties": false,
       "required": ["hook"]
     },
+    "selfServiceRegistrationAllowedMethodsHook": {
+      "type": "object",
+      "properties": {
+        "hook": {
+          "const": "registration_allowed_methods"
+        },
+        "config": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "allowed": {
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "enum": [
+                  "password",
+                  "oidc",
+                  "totp",
+                  "lookup_secret",
+                  "webauthn",
+                  "code",
+                  "passkey",
+                  "profile"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": ["hook"]
+    },
     "b2bSSOHook": {
       "type": "object",
       "properties": {
@@ -694,6 +727,9 @@
           },
           {
             "$ref": "#/definitions/b2bSSOHook"
+          },
+          {
+            "$ref": "#/definitions/selfServiceRegistrationAllowedMethodsHook"
           }
         ]
       },

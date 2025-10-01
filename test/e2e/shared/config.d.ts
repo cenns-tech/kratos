@@ -40,7 +40,11 @@ export type WebHookConfiguration =
       can_interrupt?: false
       [k: string]: unknown | undefined
     }
-export type SelfServiceHooks = (SelfServiceWebHook | B2BSSOHook)[]
+export type SelfServiceHooks = (
+  | SelfServiceWebHook
+  | B2BSSOHook
+  | SelfServiceRegistrationAllowedMethodsHook
+)[]
 /**
  * If set to true will enable [User Registration](https://www.ory.sh/kratos/docs/self-service/flows/user-registration/).
  */
@@ -877,6 +881,21 @@ export interface SelfServiceSessionIssuerHook {
 }
 export interface SelfServiceShowVerificationUIHook {
   hook: "show_verification_ui"
+}
+export interface SelfServiceRegistrationAllowedMethodsHook {
+  hook: "registration_allowed_methods"
+  config?: {
+    allowed?: (
+      | "password"
+      | "oidc"
+      | "totp"
+      | "lookup_secret"
+      | "webauthn"
+      | "code"
+      | "passkey"
+      | "profile"
+    )[]
+  }
 }
 export interface SelfServiceBeforeLogin {
   hooks?: SelfServiceHooks

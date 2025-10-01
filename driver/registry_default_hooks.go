@@ -91,6 +91,14 @@ allHooksLoop:
 			if h, ok := any(m.HookVerifier()).(T); ok {
 				hooks = append(hooks, h)
 			}
+		case hook.KeyRegistrationAllowList:
+			filter, err := hook.NewRegistrationMethodAllowListHook(h.Config)
+			if err != nil {
+				return nil, err
+			}
+			if h, ok := any(filter).(T); ok {
+				hooks = append(hooks, h)
+			}
 		default:
 			for name, m := range m.injectedSelfserviceHooks {
 				if name == h.Name {

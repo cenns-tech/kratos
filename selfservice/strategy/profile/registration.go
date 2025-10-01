@@ -17,6 +17,7 @@ import (
 	"github.com/ory/kratos/schema"
 	"github.com/ory/kratos/selfservice/flow"
 	"github.com/ory/kratos/selfservice/flow/registration"
+	"github.com/ory/kratos/selfservice/hook"
 	"github.com/ory/kratos/text"
 	"github.com/ory/kratos/ui/container"
 	"github.com/ory/kratos/ui/node"
@@ -296,6 +297,10 @@ func (s *Strategy) showCredentialsSelection(ctx context.Context, w http.Response
 		} else {
 			didPopulate = true
 		}
+	}
+
+	if err := hook.PruneRegistrationFlow(regFlow); err != nil {
+		return s.handleRegistrationError(r, regFlow, params, err)
 	}
 
 	// If no strategy populated, it means that the account (very likely) does not exist. We show a user not found error,
