@@ -146,6 +146,8 @@ func (h *Handler) NewFlow(ctx context.Context, w http.ResponseWriter, r *http.Re
 		}
 	}
 
+	applyImmutableIdentifierNodes(f)
+
 	ds, err := h.d.Config().IdentityTraitsSchemaURL(ctx, i.SchemaID)
 	if err != nil {
 		return nil, err
@@ -160,6 +162,45 @@ func (h *Handler) NewFlow(ctx context.Context, w http.ResponseWriter, r *http.Re
 	}
 
 	return f, nil
+}
+
+func applyImmutableIdentifierNodes(flow *Flow) {
+	if flow == nil || flow.UI == nil {
+		return
+	}
+
+	immutableTraits := ImmutableIdentifierTraits(flow)
+	if len(immutableTraits) == 0 {
+		return
+	}
+
+	immutable := make(map[string]struct{}, len(immutableTraits))
+	for _, name := range immutableTraits {
+		immutable[name] = struct{}{}
+	}
+
+	var hidden node.Nodes
+	for i := range flow.UI.Nodes {
+		n := flow.UI.Nodes[i]
+		if n.Type != node.Input {
+			continue
+		}
+
+		attrs, ok := n.Attributes.(*node.InputAttributes)
+		if !ok {
+			continue
+		}
+
+		if _, ok := immutable[attrs.Name]; !ok {
+			continue
+		}
+
+		attrs.Disabled = true
+		hiddenInput := node.NewInputField(attrs.Name, attrs.FieldValue, n.Group, node.InputAttributeTypeHidden)
+		hidden = append(hidden, hiddenInput)
+	}
+
+	flow.UI.Nodes = append(flow.UI.Nodes, hidden...)
 }
 
 func (h *Handler) FromOldFlow(ctx context.Context, w http.ResponseWriter, r *http.Request, i *identity.Identity, of Flow) (*Flow, error) {

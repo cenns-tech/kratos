@@ -51,6 +51,9 @@ selfservice:
       ui_url: http://localhost:4455/settings
       privileged_session_max_age: 5m
       required_aal: aal1
+      before:
+        hooks:
+          - hook: immutable_identifier_traits
     logout:
       after:
         default_browser_return_url: http://localhost:4455/login

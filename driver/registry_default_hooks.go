@@ -49,6 +49,13 @@ func (m *RegistryDefault) HookShowVerificationUI() *hook.ShowVerificationUIHook 
 	return m.hookShowVerificationUI
 }
 
+func (m *RegistryDefault) HookImmutableIdentifierTraits() *hook.ImmutableIdentifierTraitsHook {
+	if m.hookImmutableIdentifierTraits == nil {
+		m.hookImmutableIdentifierTraits = hook.NewImmutableIdentifierTraitsHook(m)
+	}
+	return m.hookImmutableIdentifierTraits
+}
+
 func (m *RegistryDefault) WithHooks(hooks map[string]func(config.SelfServiceHook) interface{}) {
 	m.injectedSelfserviceHooks = hooks
 }
@@ -97,6 +104,10 @@ allHooksLoop:
 				return nil, err
 			}
 			if h, ok := any(filter).(T); ok {
+				hooks = append(hooks, h)
+			}
+		case hook.KeyImmutableIdentifiers:
+			if h, ok := any(m.HookImmutableIdentifierTraits()).(T); ok {
 				hooks = append(hooks, h)
 			}
 		default:

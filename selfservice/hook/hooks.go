@@ -11,4 +11,5 @@ const (
 	KeyVerificationUI         = "show_verification_ui"
 	KeyVerifier               = "verification"
 	KeyRegistrationAllowList  = "registration_allowed_methods"
+	KeyImmutableIdentifiers   = "immutable_identifier_traits"
 )

@@ -128,6 +128,16 @@
       "additionalProperties": false,
       "required": ["hook"]
     },
+    "selfServiceImmutableIdentifierTraitsHook": {
+      "type": "object",
+      "properties": {
+        "hook": {
+          "const": "immutable_identifier_traits"
+        }
+      },
+      "additionalProperties": false,
+      "required": ["hook"]
+    },
     "b2bSSOHook": {
       "type": "object",
       "properties": {
@@ -730,6 +740,9 @@
           },
           {
             "$ref": "#/definitions/selfServiceRegistrationAllowedMethodsHook"
+          },
+          {
+            "$ref": "#/definitions/selfServiceImmutableIdentifierTraitsHook"
           }
         ]
       },

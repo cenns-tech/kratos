@@ -89,11 +89,12 @@ type RegistryDefault struct {
 	persister       persistence.Persister
 	migrationStatus popx.MigrationStatuses
 
-	hookVerifier           *hook.Verifier
-	hookSessionIssuer      *hook.SessionIssuer
-	hookSessionDestroyer   *hook.SessionDestroyer
-	hookAddressVerifier    *hook.AddressVerifier
-	hookShowVerificationUI *hook.ShowVerificationUIHook
+	hookVerifier                  *hook.Verifier
+	hookSessionIssuer             *hook.SessionIssuer
+	hookSessionDestroyer          *hook.SessionDestroyer
+	hookAddressVerifier           *hook.AddressVerifier
+	hookShowVerificationUI        *hook.ShowVerificationUIHook
+	hookImmutableIdentifierTraits *hook.ImmutableIdentifierTraitsHook
 
 	identityHandler        *identity.Handler
 	identityValidator      *identity.Validator
