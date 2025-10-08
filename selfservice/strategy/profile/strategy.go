@@ -7,6 +7,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"reflect"
+	"strings"
 	"time"
 
 	"github.com/ory/kratos/x/nosurfx"
@@ -19,6 +21,7 @@ import (
 
 	"github.com/gofrs/uuid"
 	"github.com/pkg/errors"
+	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 
 	"github.com/ory/herodot"
@@ -170,6 +173,12 @@ func (s *Strategy) continueFlow(ctx context.Context, r *http.Request, ctxUpdate 
 		return errors.WithStack(herodot.ErrBadRequest.WithReasonf("Did not receive any value changes."))
 	}
 
+	sanitizedTraits, err := sanitizeImmutableIdentifierTraits(ctxUpdate.Flow, ctxUpdate.GetSessionIdentity(), p.Traits)
+	if err != nil {
+		return err
+	}
+	p.Traits = sanitizedTraits
+
 	if err := s.hydrateForm(r, ctxUpdate.Flow, p.Traits); err != nil {
 		return err
 	}
@@ -245,6 +254,63 @@ func (s *Strategy) hydrateForm(r *http.Request, ar *settings.Flow, traits json.R
 	ar.UI.SetCSRF(s.d.GenerateCSRFToken(r))
 
 	return nil
+}
+
+func sanitizeImmutableIdentifierTraits(flow *settings.Flow, identity *identity.Identity, submitted json.RawMessage) (json.RawMessage, error) {
+	if identity == nil || flow == nil {
+		return submitted, nil
+	}
+
+	immutableTraits := settings.ImmutableIdentifierTraits(flow)
+	if len(immutableTraits) == 0 {
+		return submitted, nil
+	}
+
+	buffer := submitted
+	if len(buffer) == 0 {
+		buffer = []byte("{}")
+	}
+
+	for _, fullPath := range immutableTraits {
+		relative := strings.TrimPrefix(fullPath, "traits.")
+		if relative == "" || relative == fullPath {
+			continue
+		}
+
+		current := gjson.GetBytes(identity.Traits, relative)
+		incoming := gjson.GetBytes(buffer, relative)
+
+		if !incoming.Exists() {
+			if !current.Exists() {
+				continue
+			}
+
+			var err error
+			buffer, err = sjson.SetBytes(buffer, relative, current.Value())
+			if err != nil {
+				return nil, errors.WithStack(err)
+			}
+			continue
+		}
+
+		if !current.Exists() {
+			return nil, errors.WithStack(herodot.ErrBadRequest.WithReasonf("The field %s is read only and can not be set.", relative))
+		}
+
+		if !jsonValuesEqual(current, incoming) {
+			return nil, errors.WithStack(herodot.ErrBadRequest.WithReasonf("The field %s is read only and can not be modified.", relative))
+		}
+	}
+
+	return json.RawMessage(buffer), nil
+}
+
+func jsonValuesEqual(a, b gjson.Result) bool {
+	if a.Raw != "" && b.Raw != "" {
+		return a.Raw == b.Raw
+	}
+
+	return reflect.DeepEqual(a.Value(), b.Value())
 }
 
 // handleSettingsError is a convenience function for handling all types of errors that may occur (e.g. validation error)

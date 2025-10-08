@@ -1,0 +1,111 @@
+serve:
+  public:
+    base_url: http://localhost:4433/
+    cors:
+      enabled: true
+  admin:
+    base_url: http://kratos:4434/
+
+session:
+  whoami:
+    required_aal: aal1
+
+selfservice:
+  default_browser_return_url: http://localhost:4455/welcome
+  allowed_return_urls:
+    - http://localhost:4455
+    - http://localhost:19006/Callback
+    - exp://example.com/Callback
+    - https://www.ory.sh/
+    - https://example.org/
+    - https://www.example.org/
+  methods:
+    password:
+      enabled: false
+    oidc:
+      enabled: false
+    profile:
+      enabled: true
+    code:
+      enabled: true
+      passwordless_enabled: true
+      mfa_enabled: false
+      config:
+        lifespan: 10m
+    totp:
+      enabled: true
+      config:
+        issuer: issuer.ory.sh
+    lookup_secret:
+      enabled: true
+    passkey:
+      enabled: true
+      config:
+        rp:
+          id: localhost
+          origins:
+            - http://localhost:4455
+          display_name: Ory
+  flows:
+    settings:
+      ui_url: http://localhost:4455/settings
+      privileged_session_max_age: 5m
+      required_aal: aal1
+      before:
+        hooks:
+          - hook: immutable_identifier_traits
+    logout:
+      after:
+        default_browser_return_url: http://localhost:4455/login
+    registration:
+      ui_url: http://localhost:4455/registration
+      before:
+        hooks:
+          - hook: registration_allowed_methods
+            config:
+              allowed:
+                - code
+      after:
+        code:
+          hooks:
+            - hook: session
+    login:
+      ui_url: http://localhost:4455/login
+    error:
+      ui_url: http://localhost:4455/error
+    verification:
+      ui_url: http://localhost:4455/verify
+    recovery:
+      ui_url: http://localhost:4455/recovery
+
+log:
+  level: debug
+  format: text
+  leak_sensitive_values: true
+
+secrets:
+  cookie:
+    - PLEASE-CHANGE-ME-I-AM-VERY-INSECURE
+  cipher:
+    - 32-LONG-SECRET-NOT-SECURE-AT-ALL
+
+ciphers:
+  algorithm: xchacha20-poly1305
+
+hashers:
+  algorithm: bcrypt
+  bcrypt:
+    cost: 8
+
+identity:
+  schemas:
+    - id: default
+      url: file://contrib/quickstart/kratos/custom/identity.schema.json
+
+courier:
+  smtp:
+    connection_uri: smtps://test:test@mailslurper:1025/?skip_ssl_verify=true
+
+security:
+  account_enumeration:
+    mitigate: true
